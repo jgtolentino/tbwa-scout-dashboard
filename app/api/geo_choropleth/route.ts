@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/utils/supabase';
 
-// CORS headers for production
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
-};
-
 export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+  return NextResponse.json({});
 }
 
 export async function GET(request: NextRequest) {
@@ -30,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // If data is already in GeoJSON format, return it
     if (data && data.type === 'FeatureCollection') {
-      return NextResponse.json(data, { headers: corsHeaders });
+      return NextResponse.json(data);
     }
 
     // Otherwise, format as GeoJSON
@@ -50,7 +43,7 @@ export async function GET(request: NextRequest) {
       }))
     };
 
-    return NextResponse.json(geoJson, { headers: corsHeaders });
+    return NextResponse.json(geoJson);
   } catch (error) {
     console.error('Geo choropleth error:', error);
     
@@ -103,7 +96,7 @@ export async function GET(request: NextRequest) {
       ]
     };
 
-    return NextResponse.json(mockGeoJson, { headers: corsHeaders });
+    return NextResponse.json(mockGeoJson);
   }
 }
 

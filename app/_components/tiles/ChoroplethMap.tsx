@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { scoutFetch } from '@/lib/utils/scoutFetch';
 
 interface ChoroplethMapProps {
   data: any;
@@ -27,13 +28,19 @@ const ChoroplethMap: React.FC<ChoroplethMapProps> = ({ data, metric = 'revenue' 
       zoom: 5
     });
 
-    map.current.on('load', () => {
+    map.current.on('load', async () => {
       if (!map.current) return;
+
+      // Fetch initial data
+      const initialData = await scoutFetch('geo_choropleth', { 
+        level: 'region', 
+        metric_type: selectedMetric 
+      });
 
       // Add source
       map.current.addSource('regions', {
         type: 'geojson',
-        data: `/api/geo_choropleth?level=region&metric=${selectedMetric}`
+        data: initialData
       });
 
       // Add fill layer
@@ -111,8 +118,7 @@ const ChoroplethMap: React.FC<ChoroplethMapProps> = ({ data, metric = 'revenue' 
 
     const source = map.current.getSource('regions') as mapboxgl.GeoJSONSource;
     if (source) {
-      fetch(`/api/geo_choropleth?level=region&metric=${selectedMetric}`)
-        .then(res => res.json())
+      scoutFetch('geo_choropleth', { level: 'region', metric_type: selectedMetric })
         .then(data => {
           source.setData(data);
         })

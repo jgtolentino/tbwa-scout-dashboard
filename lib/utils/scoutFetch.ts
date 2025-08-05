@@ -9,6 +9,12 @@ import { supabase } from './supabase';
  */
 export async function scoutFetch(fn: string, payload?: any) {
   try {
+    // Debug log to check environment variables
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log('Anon key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    }
+
     // Map frontend function names to RPC function names
     const rpcFunctionMap: Record<string, string> = {
       // Gold layer views

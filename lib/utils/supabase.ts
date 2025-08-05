@@ -3,7 +3,18 @@ import { createBrowserClient } from '@supabase/ssr'
 // Create a Supabase client for client-side operations
 export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    global: { 
+      headers: { 
+        'x-application-name': 'scout-dashboard' 
+      } 
+    },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true
+    }
+  }
 )
 
 // Helper function to call Edge Functions with proper auth and CORS handling

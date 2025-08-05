@@ -58,3 +58,21 @@ export async function getAuthHeaders() {
     'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
   }
 }
+
+// Helper function to call RPC functions
+export async function callRPC<T = any>(
+  functionName: string, 
+  params?: Record<string, any>
+): Promise<T> {
+  console.log(`Calling RPC: ${functionName}`, params);
+  
+  const { data, error } = await supabase.rpc(functionName, params);
+  
+  if (error) {
+    console.error(`RPC Error (${functionName}):`, error);
+    throw new Error(`Failed to call ${functionName}: ${error.message}`);
+  }
+  
+  console.log(`RPC Success (${functionName}):`, data);
+  return data;
+}

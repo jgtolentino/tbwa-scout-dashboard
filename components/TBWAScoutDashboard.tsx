@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -20,6 +20,9 @@ import {
   RefreshCw
 } from 'lucide-react';
 
+// Lazy load the map component to optimize initial load
+const PhilippinesChoropleth = lazy(() => import('./PhilippinesChoropleth'));
+
 const TBWAScoutDashboard = () => {
   const [activeTab, setActiveTab] = useState('executive');
   const [data, setData] = useState({});
@@ -27,6 +30,7 @@ const TBWAScoutDashboard = () => {
   const [nlQuery, setNlQuery] = useState('');
   const [nlResult, setNlResult] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [showMap, setShowMap] = useState(false);
 
   // TBWA Design Tokens
   const tokens = {
@@ -707,93 +711,151 @@ const TBWAScoutDashboard = () => {
 
   const renderGeographic = () => {
     const geoData = data.geographic;
-    if (!geoData || geoData.error) {
-      return (
+    
+    return (
+      <div className="space-y-6">
+        {/* Interactive Choropleth Map */}
         <div 
-          className="text-center p-8 rounded-lg border-2 border-dashed"
+          className="rounded-xl shadow-sm border"
           style={{ 
-            borderColor: tokens.colors.accentRed,
-            backgroundColor: '#FEF2F2',
-            color: tokens.colors.accentRed
+            backgroundColor: tokens.colors.tbwaWhite,
+            borderColor: tokens.colors.tbwaLightGray,
+            borderTop: `4px solid ${tokens.colors.accentEmerald}`
           }}
         >
-          Error loading geographic data: {geoData?.error}
-        </div>
-      );
-    }
-
-    return (
-      <div 
-        className="rounded-xl p-6 shadow-sm border"
-        style={{ 
-          backgroundColor: tokens.colors.tbwaWhite,
-          borderColor: tokens.colors.tbwaLightGray,
-          borderTop: `4px solid ${tokens.colors.accentEmerald}`
-        }}
-      >
-        <div className="flex items-center mb-6">
-          <div 
-            className="w-10 h-10 rounded-full flex items-center justify-center mr-4"
-            style={{ backgroundColor: tokens.colors.accentEmerald }}
-          >
-            <Globe className="h-5 w-5" style={{ color: tokens.colors.tbwaWhite }} />
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center mr-4"
+                  style={{ backgroundColor: tokens.colors.accentEmerald }}
+                >
+                  <MapPin className="h-5 w-5" style={{ color: tokens.colors.tbwaWhite }} />
+                </div>
+                <h3 
+                  className="text-xl font-bold"
+                  style={{ 
+                    color: tokens.colors.tbwaBlack,
+                    fontFamily: tokens.typography.fontFamily,
+                    fontWeight: tokens.typography.fontWeights.bold
+                  }}
+                >
+                  Philippines Regional Intelligence Map
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowMap(!showMap)}
+                className="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105"
+                style={{ 
+                  backgroundColor: tokens.colors.tbwaYellow,
+                  color: tokens.colors.tbwaBlack
+                }}
+              >
+                {showMap ? 'Hide Map' : 'Show Map'}
+              </button>
+            </div>
+            
+            {showMap && (
+              <Suspense fallback={
+                <div className="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading Philippines map...</p>
+                  </div>
+                </div>
+              }>
+                <PhilippinesChoropleth />
+              </Suspense>
+            )}
           </div>
-          <h3 
-            className="text-xl font-bold"
+        </div>
+
+        {/* Location Grid */}
+        {(!geoData || geoData.error) ? (
+          <div 
+            className="text-center p-8 rounded-lg border-2 border-dashed"
             style={{ 
-              color: tokens.colors.tbwaBlack,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeights.bold
+              borderColor: tokens.colors.accentRed,
+              backgroundColor: '#FEF2F2',
+              color: tokens.colors.accentRed
             }}
           >
-            Geographic Intelligence Matrix
-          </h3>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.isArray(geoData) && geoData.slice(0, 6).map((location, index) => (
-            <div 
-              key={index} 
-              className="border rounded-lg p-4 relative overflow-hidden"
-              style={{ 
-                borderColor: tokens.colors.tbwaLightGray,
-                backgroundColor: tokens.colors.tbwaWhite
-              }}
-            >
+            Error loading geographic data: {geoData?.error}
+          </div>
+        ) : (
+          <div 
+            className="rounded-xl p-6 shadow-sm border"
+            style={{ 
+              backgroundColor: tokens.colors.tbwaWhite,
+              borderColor: tokens.colors.tbwaLightGray,
+              borderTop: `4px solid ${tokens.colors.accentEmerald}`
+            }}
+          >
+            <div className="flex items-center mb-6">
               <div 
-                className="absolute top-0 right-0 w-16 h-16 opacity-10"
-                style={{ 
-                  background: `radial-gradient(circle, ${tokens.colors.tbwaYellow} 0%, transparent 70%)` 
-                }}
-              />
-              
-              <p 
-                className="font-bold text-lg mb-1 relative z-10"
+                className="w-10 h-10 rounded-full flex items-center justify-center mr-4"
+                style={{ backgroundColor: tokens.colors.accentEmerald }}
+              >
+                <Globe className="h-5 w-5" style={{ color: tokens.colors.tbwaWhite }} />
+              </div>
+              <h3 
+                className="text-xl font-bold"
                 style={{ 
                   color: tokens.colors.tbwaBlack,
                   fontFamily: tokens.typography.fontFamily,
                   fontWeight: tokens.typography.fontWeights.bold
                 }}
               >
-                {location.region_name}
-              </p>
-              <p 
-                className="text-sm mb-3 relative z-10"
-                style={{ color: tokens.colors.tbwaGray }}
-              >
-                {location.province_name}, {location.city_name}
-              </p>
-              <div className="flex justify-between text-sm relative z-10">
-                <span style={{ color: tokens.colors.tbwaBlue }}>
-                  Sales: ₱{(location.total_sales || 0).toLocaleString()}
-                </span>
-                <span style={{ color: tokens.colors.accentEmerald }}>
-                  Transactions: {(location.transaction_count || 0).toLocaleString()}
-                </span>
-              </div>
+                Geographic Performance Grid
+              </h3>
             </div>
-          ))}
-        </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.isArray(geoData) && geoData.slice(0, 6).map((location, index) => (
+                <div 
+                  key={index} 
+                  className="border rounded-lg p-4 relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  style={{ 
+                    borderColor: tokens.colors.tbwaLightGray,
+                    backgroundColor: tokens.colors.tbwaWhite
+                  }}
+                >
+                  <div 
+                    className="absolute top-0 right-0 w-16 h-16 opacity-10"
+                    style={{ 
+                      background: `radial-gradient(circle, ${tokens.colors.tbwaYellow} 0%, transparent 70%)` 
+                    }}
+                  />
+                  
+                  <p 
+                    className="font-bold text-lg mb-1 relative z-10"
+                    style={{ 
+                      color: tokens.colors.tbwaBlack,
+                      fontFamily: tokens.typography.fontFamily,
+                      fontWeight: tokens.typography.fontWeights.bold
+                    }}
+                  >
+                    {location.region_name}
+                  </p>
+                  <p 
+                    className="text-sm mb-3 relative z-10"
+                    style={{ color: tokens.colors.tbwaGray }}
+                  >
+                    {location.province_name}, {location.city_name}
+                  </p>
+                  <div className="flex justify-between text-sm relative z-10">
+                    <span style={{ color: tokens.colors.tbwaBlue }}>
+                      Sales: ₱{(location.total_sales || 0).toLocaleString()}
+                    </span>
+                    <span style={{ color: tokens.colors.accentEmerald }}>
+                      Transactions: {(location.transaction_count || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };

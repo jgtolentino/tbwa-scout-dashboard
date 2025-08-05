@@ -12,12 +12,16 @@
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.436.0"
+    "lucide-react": "^0.436.0",
+    "mapbox-gl": "^3.0.1",
+    "@turf/turf": "^6.5.0",
+    "swr": "^2.2.4"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/mapbox-gl": "^2.15.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",

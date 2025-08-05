@@ -7,7 +7,10 @@ AI-powered retail intelligence dashboard for TBWA client portfolio with **Wren A
 - 📊 Executive Intelligence Dashboard
 - 🔍 Performance Analytics
 - 🏆 Brand Competitive Intelligence
-- 🗺️ Geographic Intelligence Matrix
+- 🗺️ Geographic Intelligence Matrix with **Philippines Choropleth Map**
+  - Progressive zoom-aware visualization (Region → Province → City → Barangay)
+  - Real-time PostGIS data integration
+  - Interactive hover and drill-down capabilities
 - 🤖 Natural Language Query Interface with **3 Modes**:
   - **Semantic Search** (No LLM required) - Pattern matching & RAG
   - **Wren AI** Integration - Advanced Text-to-SQL with LLM

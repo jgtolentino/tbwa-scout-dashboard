@@ -20,8 +20,9 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-// Lazy load the map component to optimize initial load
+// Lazy load components to optimize initial load
 const PhilippinesChoropleth = lazy(() => import('./PhilippinesChoropleth'));
+const AskSUQI = lazy(() => import('./AskSUQI'));
 
 const TBWAScoutDashboard = () => {
   const [activeTab, setActiveTab] = useState('executive');
@@ -260,6 +261,11 @@ const TBWAScoutDashboard = () => {
       "Geographic performance insights",
       "Which regions have highest sales?",
       "Location-based analytics"
+    ],
+    'ask-suqi': [
+      "What's our total revenue last month?",
+      "Show top performing stores by region",
+      "Compare TBWA brands vs competitors"
     ]
   };
 
@@ -1177,7 +1183,8 @@ const TBWAScoutDashboard = () => {
             { key: 'executive', label: 'Executive Intelligence', icon: Target },
             { key: 'analytics', label: 'Performance Analytics', icon: BarChart3 },
             { key: 'brands', label: 'Brand Intelligence', icon: TrendingUp },
-            { key: 'geographic', label: 'Geographic Intelligence', icon: MapPin }
+            { key: 'geographic', label: 'Geographic Intelligence', icon: MapPin },
+            { key: 'ask-suqi', label: 'Ask SUQI', icon: Brain }
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -1228,6 +1235,18 @@ const TBWAScoutDashboard = () => {
             {activeTab === 'analytics' && renderAnalytics()}
             {activeTab === 'brands' && renderBrands()}
             {activeTab === 'geographic' && renderGeographic()}
+            {activeTab === 'ask-suqi' && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading SUQI...</p>
+                  </div>
+                </div>
+              }>
+                <AskSUQI activeTab={activeTab} />
+              </Suspense>
+            )}
           </>
         )}
       </div>

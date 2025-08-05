@@ -1,6 +1,6 @@
 # TBWA Scout Dashboard
 
-AI-powered retail intelligence dashboard for TBWA client portfolio with **Wren AI** integration for real-time database queries.
+AI-powered retail intelligence dashboard for TBWA client portfolio featuring **Ask SUQI** - the evolution of WrenAI branded specifically for TBWA's Scout Universal Query Intelligence.
 
 ## Features
 
@@ -11,10 +11,11 @@ AI-powered retail intelligence dashboard for TBWA client portfolio with **Wren A
   - Progressive zoom-aware visualization (Region → Province → City → Barangay)
   - Real-time PostGIS data integration
   - Interactive hover and drill-down capabilities
-- 🤖 Natural Language Query Interface with **3 Modes**:
+- 🤖 **Ask SUQI** - Natural Language Query Interface (WrenAI Evolution):
   - **Semantic Search** (No LLM required) - Pattern matching & RAG
-  - **Wren AI** Integration - Advanced Text-to-SQL with LLM
-  - **Hybrid Mode** - Automatic fallback between modes
+  - **SUQI Mode** - WrenAI's advanced Text-to-SQL branded for TBWA
+  - **Hybrid Intelligence** - Automatic fallback between modes
+  - **Voice Input** - Speak your questions naturally
 - 💬 Text-to-SQL conversion for real database queries
 - 🧠 Works offline with semantic search (no internet/API needed)
 - 📱 Fully Responsive Design
@@ -39,7 +40,7 @@ AI-powered retail intelligence dashboard for TBWA client portfolio with **Wren A
 
 The dashboard works with mock data out of the box!
 
-### Advanced Setup with Wren AI (Real Database Queries)
+### Advanced Setup with SUQI (WrenAI-Powered Real Database Queries)
 
 1. **Set up Wren AI** (15 minutes):
    ```bash

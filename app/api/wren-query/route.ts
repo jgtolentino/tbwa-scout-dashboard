@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         sql: result.sql,
         data: mockData,
-        query_method: `Semantic Search (${result.method})`,
+        query_method: `SUQI Semantic (${result.method})`,
         confidence: result.confidence,
         execution_time: result.execution_time,
         llm_free: true
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       sql: wrenData.sql,
       data: wrenData.data || wrenData.results,
-      query_method: 'Wren AI Text-to-SQL',
+      query_method: 'SUQI AI (WrenAI)',
       confidence: wrenData.llm_confidence || wrenData.confidence || 0.85,
       execution_time: wrenData.execution_time || Date.now() - body.timestamp,
       metadata: {

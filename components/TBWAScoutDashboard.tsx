@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { EDGE_FUNCTIONS, getEdgeFunctionUrl, getApiHeaders } from '@/lib/config/edge-functions';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -23,6 +24,7 @@ import {
 // Lazy load components to optimize initial load
 const PhilippinesChoropleth = lazy(() => import('./PhilippinesChoropleth'));
 const AskSUQI = lazy(() => import('./AskSUQI'));
+const SariSariIntelligence = lazy(() => import('./SariSariIntelligence'));
 
 const TBWAScoutDashboard = () => {
   const [activeTab, setActiveTab] = useState('executive');
@@ -62,45 +64,128 @@ const TBWAScoutDashboard = () => {
     }
   };
 
-  // Your actual Supabase configuration - replace with your actual values
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-  const API_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
-  const BASE_URL = `${SUPABASE_URL}/functions/v1/complete-scout-api-system`;
-
-  // API client with mock data fallback
+  // API client using real Supabase Edge Functions
   const apiCall = async (endpoint, method = 'GET', body = null) => {
-    // For demo purposes, return mock data if API is not configured
-    if (SUPABASE_URL === 'https://your-project.supabase.co') {
+    // Check if Supabase is configured
+    const isConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && 
+                        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co';
+    
+    if (!isConfigured) {
+      console.warn('Supabase not configured, using mock data');
       return getMockData(endpoint);
     }
     
-    const config = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      }
-    };
-    
-    if (body && method !== 'GET') {
-      config.body = JSON.stringify(body);
-    }
-    
-    const url = endpoint.startsWith('/') ? `${BASE_URL}${endpoint}` : 
-                endpoint.includes('query') ? BASE_URL : `${BASE_URL}/${endpoint}`;
-                
     try {
-      const response = await fetch(url, config);
+      // Map endpoints to real Edge Functions with appropriate request bodies
+      let functionUrl;
+      let requestBody = body;
+      
+      switch (endpoint) {
+        case '/api/executive/dashboard':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.SCOUT_DASHBOARD_API);
+          requestBody = {
+            type: 'executive_summary',
+            metrics: ['revenue', 'market_share', 'satisfaction', 'influence', 'coverage', 'stores'],
+            period: 'last_30_days',
+            include_trends: true
+          };
+          break;
+        case '/api/analytics/regional-performance':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.CONSUMER_INSIGHTS_ENHANCED);
+          requestBody = {
+            analysis_type: 'regional_performance',
+            include_trends: true,
+            group_by: 'region',
+            metrics: ['revenue', 'transactions', 'market_share']
+          };
+          break;
+        case '/api/analytics/campaign-effectiveness':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.CONSUMER_INSIGHTS_ENHANCED);
+          requestBody = {
+            analysis_type: 'campaign_effectiveness',
+            group_by: 'store_type',
+            metrics: ['avg_influence']
+          };
+          break;
+        case '/api/analytics/customer-behavior':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.CONSUMER_INSIGHTS_ENHANCED);
+          requestBody = {
+            analysis_type: 'customer_behavior',
+            include_segments: true,
+            metrics: ['behavior_patterns', 'preferences']
+          };
+          break;
+        case '/api/brands/competitive-analysis':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.COMPETITIVE_INSIGHTS);
+          requestBody = {
+            competitor_analysis: true,
+            market_share: true,
+            brand_comparison: true,
+            metrics: ['market_share_pct', 'revenue', 'customer_satisfaction']
+          };
+          break;
+        case '/api/analytics/geographic-intelligence':
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.GEOGRAPHIC_INSIGHTS);
+          requestBody = {
+            geographic_level: 'city',
+            include_hierarchy: true,
+            metrics: ['total_sales', 'transaction_count']
+          };
+          break;
+        default:
+          functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.COMPLETE_SCOUT_API);
+          requestBody = { endpoint };
+      }
+      
+      const config = {
+        method: 'POST', // Always use POST for Edge Functions
+        headers: getApiHeaders(),
+        body: JSON.stringify(requestBody)
+      };
+      
+      console.log(`Calling Edge Function: ${functionUrl}`, requestBody);
+      
+      const response = await fetch(functionUrl, config);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`Edge Function returned ${response.status}:`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
       const result = await response.json();
       
-      if (!result.success && result.error) {
-        throw new Error(result.error);
-      }
-      
-      return result.data || result;
+      // Transform Edge Function response to match dashboard expectations
+      return transformEdgeFunctionResponse(endpoint, result);
     } catch (error) {
+      console.error('API Error:', error);
       // Fallback to mock data on API error
       return getMockData(endpoint);
+    }
+  };
+
+  // Transform Edge Function responses to match dashboard expectations
+  const transformEdgeFunctionResponse = (endpoint, data) => {
+    // If data is already in expected format, return as-is
+    if (Array.isArray(data) || data.error) {
+      return data;
+    }
+    
+    switch (endpoint) {
+      case '/api/executive/dashboard':
+        return data.kpis || data.executive_summary || data.data || [data];
+      case '/api/analytics/regional-performance':
+        return data.regional_data || data.regions || data.data || data;
+      case '/api/analytics/campaign-effectiveness':
+        return data.campaign_data || data.campaigns || data.data || data;
+      case '/api/analytics/customer-behavior':
+        return data.customer_data || data.customers || data.data || data;
+      case '/api/brands/competitive-analysis':
+        return data.brand_data || data.brands || data.competitive_analysis || data.data || data;
+      case '/api/analytics/geographic-intelligence':
+        return data.geographic_data || data.locations || data.data || data;
+      default:
+        return data.data || data;
     }
   };
 
@@ -261,6 +346,11 @@ const TBWAScoutDashboard = () => {
       "Geographic performance insights",
       "Which regions have highest sales?",
       "Location-based analytics"
+    ],
+    'sari-sari': [
+      "Infer transaction from ₱20 payment, ₱3 change",
+      "Show customer persona insights",
+      "What are the top ROI recommendations?"
     ],
     'ask-suqi': [
       "What's our total revenue last month?",
@@ -948,7 +1038,7 @@ const TBWAScoutDashboard = () => {
               }}
             >
               <Brain className="h-3 w-3 mr-1" />
-              WrenAI Active
+              SUQI Active
             </span>
             <span 
               className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
@@ -959,7 +1049,7 @@ const TBWAScoutDashboard = () => {
               }}
             >
               <Zap className="h-3 w-3 mr-1" />
-              13 APIs Ready
+              70+ Edge Functions
             </span>
             <span 
               className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
@@ -1184,6 +1274,7 @@ const TBWAScoutDashboard = () => {
             { key: 'analytics', label: 'Performance Analytics', icon: BarChart3 },
             { key: 'brands', label: 'Brand Intelligence', icon: TrendingUp },
             { key: 'geographic', label: 'Geographic Intelligence', icon: MapPin },
+            { key: 'sari-sari', label: 'Sari-Sari Expert', icon: Store },
             { key: 'ask-suqi', label: 'Ask SUQI', icon: Brain }
           ].map(({ key, label, icon: Icon }) => (
             <button
@@ -1235,6 +1326,18 @@ const TBWAScoutDashboard = () => {
             {activeTab === 'analytics' && renderAnalytics()}
             {activeTab === 'brands' && renderBrands()}
             {activeTab === 'geographic' && renderGeographic()}
+            {activeTab === 'sari-sari' && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading Sari-Sari Expert...</p>
+                  </div>
+                </div>
+              }>
+                <SariSariIntelligence />
+              </Suspense>
+            )}
             {activeTab === 'ask-suqi' && (
               <Suspense fallback={
                 <div className="flex items-center justify-center py-16">
@@ -1264,7 +1367,7 @@ const TBWAScoutDashboard = () => {
           style={{ fontFamily: tokens.typography.fontFamily }}
         >
           TBWA Scout Analytics Intelligence | AI-Powered Retail Intelligence | 
-          <span style={{ color: tokens.colors.tbwaYellow }}> ✨ Enhanced with WrenAI</span>
+          <span style={{ color: tokens.colors.tbwaYellow }}> ✨ Enhanced with SUQI & 70+ Supabase Edge Functions</span>
         </p>
       </div>
     </div>

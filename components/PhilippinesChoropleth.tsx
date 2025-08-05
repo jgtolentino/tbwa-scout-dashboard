@@ -56,10 +56,15 @@ export default function PhilippinesChoropleth() {
     return 'region';
   }, []);
 
-  // Fetch choropleth data based on zoom level
+  // Fetch choropleth data based on zoom level using Edge Function
   const { data: choroplethData, error } = useSWR<ChoroplethData[]>(
-    mapLoaded ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/choropleth_api?level=eq.${currentLevel}&metric_type=eq.${mapOptions.metric}` : null,
-    fetcher,
+    mapLoaded ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/geo_choropleth?level=${currentLevel}&metric_type=${mapOptions.metric}` : null,
+    (url: string) => fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      }
+    }).then(res => res.json()),
     {
       refreshInterval: 300000, // 5 minutes
       revalidateOnFocus: false

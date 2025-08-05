@@ -358,5 +358,213 @@ export const queryTemplates: QueryTemplate[] = [
       'Our market position',
       'TBWA share of market'
     ]
+  },
+
+  // Sari-Sari Expert Bot Queries
+  {
+    id: 'transaction_inference',
+    patterns: [
+      'infer transaction',
+      'predict products',
+      'what did customer buy',
+      'transaction analysis',
+      'payment inference'
+    ],
+    keywords: ['infer', 'predict', 'transaction', 'payment', 'bought', 'products'],
+    sql: `
+      SELECT * FROM scout.infer_transaction_with_persona(
+        {{payment_amount}}, 
+        {{change_given}}, 
+        '{{time_of_day}}', 
+        '{{customer_behavior}}', 
+        ARRAY[{{visible_products}}], 
+        '{{location_context}}'
+      )
+    `,
+    parameters: ['payment_amount', 'change_given', 'time_of_day', 'customer_behavior', 'visible_products', 'location_context'],
+    category: 'sari_sari',
+    confidence: 0.92,
+    examples: [
+      'Infer transaction from ₱20 payment, ₱3 change',
+      'What did customer buy with ₱50 payment?',
+      'Predict products from payment pattern'
+    ]
+  },
+
+  {
+    id: 'persona_insights',
+    patterns: [
+      'customer personas',
+      'persona analysis',
+      'customer types',
+      'buyer personas',
+      'persona insights'
+    ],
+    keywords: ['persona', 'customer', 'buyer', 'type', 'behavior', 'analysis'],
+    sql: `
+      SELECT 
+        persona_type,
+        demographic_profile,
+        behavioral_patterns,
+        product_preferences,
+        business_value,
+        regional_affinity
+      FROM scout.buyer_personas
+      WHERE persona_type = COALESCE('{{persona_type}}', persona_type)
+      ORDER BY business_value->>'frequency_score' DESC
+    `,
+    parameters: ['persona_type'],
+    category: 'sari_sari',
+    confidence: 0.89,
+    examples: [
+      'Show customer persona insights',
+      'What are the buyer personas?',
+      'Analyze customer types'
+    ]
+  },
+
+  {
+    id: 'roi_recommendations',
+    patterns: [
+      'roi recommendations',
+      'revenue recommendations',
+      'business recommendations',
+      'optimization suggestions',
+      'improve revenue'
+    ],
+    keywords: ['roi', 'recommendations', 'revenue', 'optimize', 'improve', 'suggestions'],
+    sql: `
+      SELECT * FROM scout.get_revenue_recommendations(
+        '{{store_id}}'::UUID,
+        '{{priority}}',
+        '{{category}}',
+        {{implemented}}::BOOLEAN,
+        {{limit}}
+      )
+    `,
+    parameters: ['store_id', 'priority', 'category', 'implemented', 'limit'],
+    category: 'sari_sari',
+    confidence: 0.91,
+    examples: [
+      'Show ROI recommendations',
+      'What are revenue optimization suggestions?',
+      'Business improvement recommendations'
+    ]
+  },
+
+  {
+    id: 'sari_sari_overview',
+    patterns: [
+      'sari sari overview',
+      'store intelligence',
+      'sari sari insights',
+      'store summary',
+      'retail intelligence'
+    ],
+    keywords: ['sari', 'sari-sari', 'store', 'retail', 'intelligence', 'overview'],
+    sql: `
+      WITH store_metrics AS (
+        SELECT 
+          COUNT(*) as total_inferences,
+          AVG(confidence_score) as avg_confidence,
+          COUNT(DISTINCT persona_match) as unique_personas
+        FROM scout.inferred_transactions
+        WHERE DATE(created_at) = CURRENT_DATE
+      ),
+      revenue_opportunities AS (
+        SELECT 
+          SUM(revenue_potential) as total_opportunities,
+          COUNT(*) as total_recommendations
+        FROM scout.revenue_recommendations
+        WHERE is_implemented = false
+      )
+      SELECT 
+        sm.total_inferences,
+        ROUND(sm.avg_confidence, 3) as average_confidence,
+        sm.unique_personas,
+        ro.total_opportunities as revenue_opportunities,
+        ro.total_recommendations
+      FROM store_metrics sm
+      CROSS JOIN revenue_opportunities ro
+    `,
+    parameters: [],
+    category: 'sari_sari',
+    confidence: 0.87,
+    examples: [
+      'Sari-sari store overview',
+      'Show store intelligence summary',
+      'Retail intelligence dashboard'
+    ]
+  },
+
+  {
+    id: 'persona_revenue_analysis',
+    patterns: [
+      'persona revenue',
+      'customer value by type',
+      'persona profitability',
+      'customer segment value',
+      'persona business impact'
+    ],
+    keywords: ['persona', 'revenue', 'value', 'customer', 'profitability', 'ltv'],
+    sql: `
+      SELECT 
+        bp.persona_type,
+        bp.business_value->>'monthly_ltv' as monthly_ltv,
+        bp.business_value->>'frequency_score' as frequency_score,
+        bp.business_value->>'average_transaction_value' as avg_transaction,
+        COUNT(it.id) as total_inferences
+      FROM scout.buyer_personas bp
+      LEFT JOIN scout.inferred_transactions it ON it.persona_match = bp.persona_type
+      WHERE it.created_at >= CURRENT_DATE - INTERVAL '{{period}}'
+      GROUP BY bp.persona_type, bp.business_value
+      ORDER BY (bp.business_value->>'monthly_ltv')::INTEGER DESC
+    `,
+    parameters: ['period'],
+    category: 'sari_sari',
+    confidence: 0.88,
+    examples: [
+      'Show persona revenue analysis',
+      'Which personas generate most value?',
+      'Customer segment profitability'
+    ]
+  },
+
+  {
+    id: 'recommendation_impact',
+    patterns: [
+      'recommendation impact',
+      'implemented recommendations',
+      'roi impact',
+      'recommendation results',
+      'improvement results'
+    ],
+    keywords: ['recommendation', 'impact', 'implemented', 'results', 'improvement', 'roi'],
+    sql: `
+      SELECT 
+        rr.title,
+        rr.category,
+        rr.roi_percentage,
+        rr.revenue_potential,
+        rr.implementation_cost,
+        rr.is_implemented,
+        rr.success_rate,
+        CASE 
+          WHEN rr.is_implemented THEN 'Implemented'
+          ELSE 'Pending'
+        END as status
+      FROM scout.revenue_recommendations rr
+      WHERE rr.priority = COALESCE('{{priority}}', rr.priority)
+      ORDER BY rr.roi_percentage DESC
+      LIMIT {{limit}}
+    `,
+    parameters: ['priority', 'limit'],
+    category: 'sari_sari',
+    confidence: 0.86,
+    examples: [
+      'Show recommendation impact',
+      'Which recommendations were implemented?',
+      'ROI from improvements'
+    ]
   }
 ];

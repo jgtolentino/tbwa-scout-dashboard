@@ -33,16 +33,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Call Wren AI API
-    const wrenResponse = await fetch(`${process.env.WREN_URL}/v1/query`, {
+    // Call SUQI Bot Edge Function (WrenAI integration)
+    const suqiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/wrenai-integration`;
+    const wrenResponse = await fetch(suqiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.WREN_API_KEY}`,
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
+        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
       },
       body: JSON.stringify({
         question,
-        database: process.env.WREN_DATABASE || 'scout_dash',
+        context: body.context || 'general',
         include_sql: true,
         confidence_threshold: 0.6
       }),

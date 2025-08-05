@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEdgeFunctionUrl, getApiHeaders, EDGE_FUNCTIONS } from '@/lib/config/edge-functions';
 
+// CORS headers for production
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const level = searchParams.get('level') || 'region';
@@ -44,7 +55,7 @@ export async function GET(request: NextRequest) {
       }))
     };
 
-    return NextResponse.json(geoJson);
+    return NextResponse.json(geoJson, { headers: corsHeaders });
   } catch (error) {
     console.error('Geo choropleth error:', error);
     
@@ -83,6 +94,6 @@ export async function GET(request: NextRequest) {
       ]
     };
 
-    return NextResponse.json(mockGeoJson);
+    return NextResponse.json(mockGeoJson, { headers: corsHeaders });
   }
 }

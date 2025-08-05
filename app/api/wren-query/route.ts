@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryWithoutLLM } from '@/lib/nlp/rag-engine';
 
+// CORS headers for production
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -9,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (!question) {
       return NextResponse.json(
         { error: 'Question is required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -30,7 +41,7 @@ export async function POST(request: NextRequest) {
         confidence: result.confidence,
         execution_time: result.execution_time,
         llm_free: true
-      });
+      }, { headers: corsHeaders });
     }
 
     // Call SUQI Bot Edge Function (WrenAI integration)
@@ -67,7 +78,7 @@ export async function POST(request: NextRequest) {
         tables_used: wrenData.tables_used,
         columns_referenced: wrenData.columns_referenced
       }
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Wren AI query error:', error);
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
         details: error instanceof Error ? error.message : 'Unknown error',
         query_method: 'Error'
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -190,5 +201,5 @@ export async function GET() {
       database: process.env.WREN_DATABASE || 'scout_dash'
     },
     timestamp: new Date().toISOString()
-  });
+  }, { headers: corsHeaders });
 }

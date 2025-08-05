@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Search, Brain, Cookie } from 'lucide-react';
 import { semanticSearch } from '@/lib/nlp/semantic-search';
-import { getEdgeFunctionUrl, getApiHeaders, EDGE_FUNCTIONS } from '@/lib/config/edge-functions';
+import { scoutFetch } from '@/lib/utils/scoutFetch';
 
 type ChatSource = 'scout' | 'suqi';
 
@@ -37,40 +37,31 @@ export const AskPanel: React.FC<AskPanelProps> = ({ onResult }) => {
     setResult(null);
 
     try {
-      let response;
+      let data;
       
       if (source === 'scout') {
-        // Scout AI - Use Wren AI endpoint
-        const functionUrl = getEdgeFunctionUrl(EDGE_FUNCTIONS.WREN_QUERY);
-        response = await fetch(functionUrl, {
-          method: 'POST',
-          headers: getApiHeaders(),
-          body: JSON.stringify({ query })
-        });
+        // Scout AI - Use Wren AI endpoint with CORS-safe fetch
+        data = await scoutFetch('wren-query', { query });
       } else {
         // SUQI - Use semantic search with Sari-Sari context
         const searchResults = semanticSearch(query);
         if (searchResults.length > 0) {
           const topResult = searchResults[0];
-          response = await fetch(getEdgeFunctionUrl(EDGE_FUNCTIONS.WREN_QUERY), {
-            method: 'POST',
-            headers: getApiHeaders(),
-            body: JSON.stringify({ 
-              query,
-              sql: topResult.sql,
-              context: 'sari_sari'
-            })
+          data = await scoutFetch('wren-query', { 
+            query,
+            sql: topResult.sql,
+            context: 'sari_sari'
           });
         } else {
-          throw new Error('No matching queries found for SUQI');
+          // Return mock data if no matches found
+          data = {
+            result: 'No specific data found. Try asking about sales, revenue, or store performance.',
+            sql: null,
+            confidence: 0.3
+          };
         }
       }
 
-      if (!response || !response.ok) {
-        throw new Error(`Query failed: ${response?.status || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
       setResult(data);
       
       if (onResult) {

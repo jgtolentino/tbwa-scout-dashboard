@@ -158,7 +158,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.payment_amount}
                 onChange={(e) => handleInputChange('payment_amount', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
                 placeholder="20.00"
               />
             </div>
@@ -173,7 +175,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.change_given}
                 onChange={(e) => handleInputChange('change_given', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
                 placeholder="3.00"
               />
             </div>
@@ -187,7 +191,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.time_of_day}
                 onChange={(e) => handleInputChange('time_of_day', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
               >
                 {timeOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -213,7 +219,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.customer_behavior}
                 onChange={(e) => handleInputChange('customer_behavior', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
                 placeholder="Male, looked at cigarettes, seemed in a hurry"
                 rows={2}
               />
@@ -229,7 +237,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.visible_products}
                 onChange={(e) => handleInputChange('visible_products', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
                 placeholder="Coke Zero, Marlboro, Lucky Me"
               />
             </div>
@@ -243,7 +253,9 @@ const TransactionInference: React.FC<TransactionInferenceProps> = ({ onInference
                 value={formData.location_context}
                 onChange={(e) => handleInputChange('location_context', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ focusRingColor: tokens.colors.tbwaYellow }}
+                style={{ outline: 'none' }}
+                onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+                onBlur={(e) => e.target.style.boxShadow = 'none'}
               >
                 <option value="">Select location type</option>
                 <option value="urban">Urban Area</option>

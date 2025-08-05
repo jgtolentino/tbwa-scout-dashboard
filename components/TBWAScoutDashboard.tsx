@@ -28,10 +28,10 @@ const SariSariIntelligence = lazy(() => import('./SariSariIntelligence'));
 
 const TBWAScoutDashboard = () => {
   const [activeTab, setActiveTab] = useState('executive');
-  const [data, setData] = useState({});
+  const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [nlQuery, setNlQuery] = useState('');
-  const [nlResult, setNlResult] = useState(null);
+  const [nlResult, setNlResult] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [showMap, setShowMap] = useState(false);
 
@@ -65,7 +65,7 @@ const TBWAScoutDashboard = () => {
   };
 
   // API client using real Supabase Edge Functions
-  const apiCall = async (endpoint, method = 'GET', body = null) => {
+  const apiCall = async (endpoint: string, method = 'GET', body: any = null) => {
     // Check if Supabase is configured
     const isConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && 
                         process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co';
@@ -165,7 +165,7 @@ const TBWAScoutDashboard = () => {
   };
 
   // Transform Edge Function responses to match dashboard expectations
-  const transformEdgeFunctionResponse = (endpoint, data) => {
+  const transformEdgeFunctionResponse = (endpoint: string, data: any) => {
     // If data is already in expected format, return as-is
     if (Array.isArray(data) || data.error) {
       return data;
@@ -190,8 +190,8 @@ const TBWAScoutDashboard = () => {
   };
 
   // Mock data for demonstration
-  const getMockData = (endpoint) => {
-    const mockData = {
+  const getMockData = (endpoint: string) => {
+    const mockData: { [key: string]: any } = {
       '/api/executive/dashboard': [{
         total_revenue_millions: 4.7,
         tbwa_market_share_pct: 28.3,
@@ -247,7 +247,7 @@ const TBWAScoutDashboard = () => {
   };
 
   // Load dashboard data
-  const loadDashboardData = async (category) => {
+  const loadDashboardData = async (category: string) => {
     setLoading(true);
     try {
       let result;
@@ -274,11 +274,11 @@ const TBWAScoutDashboard = () => {
           result = {};
       }
       
-      setData(prev => ({ ...prev, [category]: result }));
+      setData((prev: any) => ({ ...prev, [category]: result }));
       setLastUpdated(new Date());
     } catch (error) {
       console.error(`Error loading ${category} data:`, error);
-      setData(prev => ({ ...prev, [category]: { error: error.message } }));
+      setData((prev: any) => ({ ...prev, [category]: { error: error instanceof Error ? error.message : 'Unknown error' } }));
     } finally {
       setLoading(false);
     }
@@ -359,7 +359,14 @@ const TBWAScoutDashboard = () => {
     ]
   };
 
-  const TBWAKPICard = ({ title, value, subtitle, icon: Icon, trend, trendDirection = "up" }) => (
+  const TBWAKPICard = ({ title, value, subtitle, icon: Icon, trend, trendDirection = "up" }: {
+    title: string;
+    value: string;
+    subtitle: string;
+    icon: React.ComponentType<any>;
+    trend?: string;
+    trendDirection?: string;
+  }) => (
     <div 
       className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 relative overflow-hidden"
       style={{ borderTop: `4px solid ${tokens.colors.tbwaYellow}` }}
@@ -417,7 +424,7 @@ const TBWAScoutDashboard = () => {
     </div>
   );
 
-  const TBWAPerformanceBar = ({ value, maxValue = 100 }) => {
+  const TBWAPerformanceBar = ({ value, maxValue = 100 }: { value: number; maxValue?: number }) => {
     const percentage = (value / maxValue) * 100;
     
     return (
@@ -591,7 +598,7 @@ const TBWAScoutDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {analyticsData.regional.slice(0, 5).map((region, index) => (
+                  {analyticsData.regional.slice(0, 5).map((region: any, index: number) => (
                     <tr 
                       key={index} 
                       className="hover:bg-gray-50 transition-colors"
@@ -667,7 +674,7 @@ const TBWAScoutDashboard = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {analyticsData.campaigns.slice(0, 3).map((campaign, index) => (
+              {analyticsData.campaigns.slice(0, 3).map((campaign: any, index: number) => (
                 <div 
                   key={index} 
                   className="p-6 rounded-lg border-2"
@@ -1103,9 +1110,11 @@ const TBWAScoutDashboard = () => {
               placeholder="Ask anything about your business data..."
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-base"
               style={{ 
-                focusRingColor: tokens.colors.tbwaYellow,
-                fontFamily: tokens.typography.fontFamily
+                fontFamily: tokens.typography.fontFamily,
+                outline: 'none'
               }}
+              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+              onBlur={(e) => e.target.style.boxShadow = 'none'}
               onKeyPress={(e) => e.key === 'Enter' && handleNLQuery()}
             />
           </div>
@@ -1140,7 +1149,7 @@ const TBWAScoutDashboard = () => {
             Try these intelligence queries:
           </p>
           <div className="flex flex-wrap gap-2">
-            {sampleQueries[activeTab]?.map((query, index) => (
+            {(sampleQueries as any)[activeTab]?.map((query: string, index: number) => (
               <button
                 key={index}
                 onClick={() => setNlQuery(query)}
@@ -1152,12 +1161,12 @@ const TBWAScoutDashboard = () => {
                   fontFamily: tokens.typography.fontFamily
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = tokens.colors.tbwaYellow;
-                  e.target.style.color = tokens.colors.tbwaBlack;
+                  (e.target as HTMLButtonElement).style.backgroundColor = tokens.colors.tbwaYellow;
+                  (e.target as HTMLButtonElement).style.color = tokens.colors.tbwaBlack;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = tokens.colors.tbwaLightGray;
-                  e.target.style.color = tokens.colors.tbwaGray;
+                  (e.target as HTMLButtonElement).style.backgroundColor = tokens.colors.tbwaLightGray;
+                  (e.target as HTMLButtonElement).style.color = tokens.colors.tbwaGray;
                 }}
               >
                 "{query}"
@@ -1235,7 +1244,7 @@ const TBWAScoutDashboard = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {nlResult.data.slice(0, 5).map((row, index) => (
+                        {nlResult.data.slice(0, 5).map((row: any, index: number) => (
                           <tr 
                             key={index} 
                             style={{ 
@@ -1248,7 +1257,7 @@ const TBWAScoutDashboard = () => {
                                 className="px-4 py-3 text-sm"
                                 style={{ color: tokens.colors.tbwaBlack }}
                               >
-                                {typeof value === 'number' ? value.toLocaleString() : value}
+                                {typeof value === 'number' ? value.toLocaleString() : String(value)}
                               </td>
                             ))}
                           </tr>

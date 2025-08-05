@@ -14,8 +14,8 @@ function jaccardSimilarity(tokens1: string[], tokens2: string[]): number {
   const set1 = new Set(tokens1);
   const set2 = new Set(tokens2);
   
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
+  const intersection = new Set(Array.from(set1).filter(x => set2.has(x)));
+  const union = new Set([...Array.from(set1), ...Array.from(set2)]);
   
   return union.size === 0 ? 0 : intersection.size / union.size;
 }
@@ -51,7 +51,7 @@ function calculateTFIDF(tokens: string[], allDocuments: string[][]): Map<string,
 }
 
 // Extract entities and parameters from query
-interface ExtractedEntities {
+export interface ExtractedEntities {
   timeframe?: string;
   region?: string;
   limit?: number;
@@ -243,5 +243,5 @@ export function getSuggestions(partialQuery: string): string[] {
     });
   });
   
-  return [...new Set(suggestions)].slice(0, 5);
+  return Array.from(new Set(suggestions)).slice(0, 5);
 }

@@ -24,10 +24,10 @@ interface SariSariIntelligenceProps {
 
 const SariSariIntelligence: React.FC<SariSariIntelligenceProps> = ({ storeId = '1' }) => {
   const [activeSubTab, setActiveSubTab] = useState('overview');
-  const [personas, setPersonas] = useState([]);
-  const [insights, setInsights] = useState(null);
+  const [personas, setPersonas] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [recentInferences, setRecentInferences] = useState([]);
+  const [recentInferences, setRecentInferences] = useState<any[]>([]);
 
   // TBWA Design tokens
   const tokens = {

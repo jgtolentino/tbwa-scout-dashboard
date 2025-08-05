@@ -241,7 +241,9 @@ const ROIRecommendations: React.FC<ROIRecommendationsProps> = ({
               value={filters.priority}
               onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-              style={{ focusRingColor: tokens.colors.tbwaYellow }}
+              style={{ outline: 'none' }}
+              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+              onBlur={(e) => e.target.style.boxShadow = 'none'}
             >
               <option value="all">All Priorities</option>
               <option value="high">High Priority</option>
@@ -258,7 +260,9 @@ const ROIRecommendations: React.FC<ROIRecommendationsProps> = ({
               value={filters.category}
               onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-              style={{ focusRingColor: tokens.colors.tbwaYellow }}
+              style={{ outline: 'none' }}
+              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+              onBlur={(e) => e.target.style.boxShadow = 'none'}
             >
               <option value="all">All Categories</option>
               <option value="layout_optimization">Layout Optimization</option>
@@ -276,7 +280,9 @@ const ROIRecommendations: React.FC<ROIRecommendationsProps> = ({
               value={filters.implemented}
               onChange={(e) => setFilters(prev => ({ ...prev, implemented: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-              style={{ focusRingColor: tokens.colors.tbwaYellow }}
+              style={{ outline: 'none' }}
+              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
+              onBlur={(e) => e.target.style.boxShadow = 'none'}
             >
               <option value="all">All Status</option>
               <option value="false">Not Implemented</option>

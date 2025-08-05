@@ -39,7 +39,7 @@ const HeatMatrix: React.FC<HeatMatrixProps> = ({ data, loading }) => {
   }
 
   // Get max value for scaling
-  const maxValue = Math.max(...Object.values(data.heatmap).flat());
+  const maxValue = Math.max(...Object.values(data.heatmap).flat() as number[]);
 
   const getColor = (value: number) => {
     const intensity = value / maxValue;

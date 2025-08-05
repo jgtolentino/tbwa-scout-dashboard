@@ -29,6 +29,7 @@ export const EDGE_FUNCTIONS = {
   ENHANCED_WRENAI_RAG: '/functions/v1/enhanced-wrenai-rag',
   SCOUT_QUERY_PROCESSOR: '/functions/v1/scout-query-processor',
   RAG_CHAT: '/functions/v1/rag-chat',
+  WREN_QUERY: '/functions/v1/wren-query',
   
   // Real-time & Metrics
   REALTIME_METRICS: '/functions/v1/realtime-metrics',

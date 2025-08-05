@@ -40,18 +40,28 @@ export const AskPanel: React.FC<AskPanelProps> = ({ onResult }) => {
       let data;
       
       if (source === 'scout') {
-        // Scout AI - Use Wren AI endpoint with CORS-safe fetch
-        data = await scoutFetch('wren-query', { query });
+        // Scout AI - Use API route which will call RPC
+        const response = await fetch('/api/wren-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: query })
+        });
+        data = await response.json();
       } else {
         // SUQI - Use semantic search with Sari-Sari context
         const searchResults = semanticSearch(query);
         if (searchResults.length > 0) {
           const topResult = searchResults[0];
-          data = await scoutFetch('wren-query', { 
-            query,
-            sql: topResult.sql,
-            context: 'sari_sari'
+          const response = await fetch('/api/wren-query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              question: query,
+              sql: topResult.sql,
+              context: 'sari_sari'
+            })
           });
+          data = await response.json();
         } else {
           // Return mock data if no matches found
           data = {

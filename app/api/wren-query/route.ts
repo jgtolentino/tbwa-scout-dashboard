@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryWithoutLLM } from '@/lib/nlp/rag-engine';
+import { supabase } from '@/lib/utils/supabase';
 
 // CORS headers for production
 const corsHeaders = {
@@ -44,28 +45,17 @@ export async function POST(request: NextRequest) {
       }, { headers: corsHeaders });
     }
 
-    // Call SUQI Bot Edge Function (WrenAI integration)
-    const suqiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/wrenai-integration`;
-    const wrenResponse = await fetch(suqiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-      },
-      body: JSON.stringify({
-        question,
-        context: body.context || 'general',
-        include_sql: true,
-        confidence_threshold: 0.6
-      }),
+    // Call Wren Query RPC function instead of Edge Function
+    const { data: wrenData, error: wrenError } = await supabase.rpc('wren_query', {
+      question,
+      context: body.context || 'general',
+      include_sql: true,
+      confidence_threshold: 0.6
     });
 
-    if (!wrenResponse.ok) {
-      throw new Error(`Wren AI responded with ${wrenResponse.status}`);
+    if (wrenError) {
+      throw wrenError;
     }
-
-    const wrenData = await wrenResponse.json();
 
     // Transform Wren response to match our dashboard format
     return NextResponse.json({

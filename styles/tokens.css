@@ -1,0 +1,146 @@
+/* TBWA Design Tokens - Scout v5 */
+:root {
+  /* Brand Colors */
+  --c-brand-yellow: #FFD700;
+  --c-brand-black: #000000;
+  --c-brand-white: #FFFFFF;
+  --c-brand-gray: #4A4A4A;
+  --c-brand-light-gray: #F5F5F5;
+  --c-brand-dark-yellow: #E6C200;
+  
+  /* Feature Colors */
+  --c-cookie-brown: #B47921;
+  --c-tbwa-blue: #1E40AF;
+  --c-accent-purple: #6B46C1;
+  --c-accent-emerald: #059669;
+  --c-accent-red: #DC2626;
+  --c-accent-orange: #D97706;
+  
+  /* Typography */
+  --f-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --fw-light: 300;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+  --fw-black: 900;
+  
+  /* Spacing */
+  --s-gap: 1rem;
+  --s-gap-xs: 0.25rem;
+  --s-gap-sm: 0.5rem;
+  --s-gap-md: 1rem;
+  --s-gap-lg: 1.5rem;
+  --s-gap-xl: 2rem;
+  --s-gap-2xl: 3rem;
+  
+  /* Border Radius */
+  --r-card: 8px;
+  --r-button: 8px;
+  --r-input: 8px;
+  --r-pill: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-focus: 0 0 0 2px var(--c-brand-yellow);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 300ms ease;
+  --transition-slow: 500ms ease;
+}
+
+/* Utility classes for consistency */
+.tbwa-kpi-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--r-pill);
+  font-size: 0.75rem;
+  font-weight: var(--fw-bold);
+  transition: transform var(--transition-fast);
+}
+
+.tbwa-kpi-pill:hover {
+  transform: scale(1.05);
+}
+
+.tbwa-kpi-pill--success {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: var(--c-accent-emerald);
+}
+
+.tbwa-kpi-pill--warning {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: var(--c-accent-orange);
+}
+
+.tbwa-kpi-pill--error {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: var(--c-accent-red);
+}
+
+/* Empty states */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-gap-2xl);
+  text-align: center;
+  color: var(--c-brand-gray);
+}
+
+.empty-state__icon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--s-gap-md);
+  opacity: 0.3;
+}
+
+.empty-state__title {
+  font-size: 1.125rem;
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--s-gap-sm);
+}
+
+.empty-state__description {
+  font-size: 0.875rem;
+  color: var(--c-brand-gray);
+  opacity: 0.8;
+}
+
+/* Focus styles */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Loading states */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Gradient backgrounds */
+.tbwa-gradient {
+  background: radial-gradient(
+    circle at 25% 25%, 
+    var(--c-brand-yellow) 0%, 
+    transparent 50%
+  );
+}
+
+.cookie-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--c-cookie-brown) 0%,
+    var(--c-brand-dark-yellow) 100%
+  );
+}

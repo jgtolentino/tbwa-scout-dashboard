@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # Wren AI Web UI
+  wren-web:
+    image: ghcr.io/canner/wren-ui:latest
+    ports:
+      - "3001:3000"  # Using 3001 to avoid conflict with Next.js on 3000
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@pgvector:5432/wrenai
+      - WREN_ENGINE_URL=http://wren-engine:4000
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      - pgvector
+      - wren-engine
+    networks:
+      - wren-network
+
+  # Wren AI Engine (Text-to-SQL)
+  wren-engine:
+    image: ghcr.io/canner/wren-engine:latest
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@pgvector:5432/wrenai
+      - VECTOR_STORE_URL=postgresql://postgres:postgres@pgvector:5432/vectors
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - LOG_LEVEL=info
+    depends_on:
+      - pgvector
+    networks:
+      - wren-network
+    volumes:
+      - wren-models:/app/models
+
+  # PGVector for embeddings storage
+  pgvector:
+    image: ankane/pgvector:v0.5.1
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=wrenai
+    ports:
+      - "5433:5432"  # Using 5433 to avoid conflict with local Postgres
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+    networks:
+      - wren-network
+
+  # Ray Worker for async processing
+  ray-worker:
+    image: rayproject/ray:2.9.0-py310
+    environment:
+      - RAY_ADDRESS=ray://ray-head:10001
+    depends_on:
+      - wren-engine
+    networks:
+      - wren-network
+
+volumes:
+  pgvector-data:
+  wren-models:
+
+networks:
+  wren-network:
+    driver: bridge

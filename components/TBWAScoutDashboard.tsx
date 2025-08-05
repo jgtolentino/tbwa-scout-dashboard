@@ -194,21 +194,37 @@ const TBWAScoutDashboard = () => {
     }
   };
 
-  // Natural language query handler
+  // Natural language query handler using Wren AI
   const handleNLQuery = async () => {
     if (!nlQuery.trim()) return;
     
     setLoading(true);
     try {
-      const result = await apiCall('', 'POST', {
-        query: nlQuery,
-        use_llm: false,
-        confidence_threshold: 0.6
+      // Use Wren AI API route
+      const response = await fetch('/api/wren-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: nlQuery,
+          timestamp: Date.now(),
+          useWren: true // Set to false to use mock data
+        }),
       });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Query failed');
+      }
       
       setNlResult(result);
     } catch (error) {
-      setNlResult({ error: error.message });
+      setNlResult({ 
+        error: error instanceof Error ? error.message : 'Query failed',
+        query_method: 'Error'
+      });
     } finally {
       setLoading(false);
     }
@@ -1010,7 +1026,7 @@ const TBWAScoutDashboard = () => {
                   fontWeight: tokens.typography.fontWeights.bold
                 }}
               >
-                🤖 Scout AI Response
+                🤖 Scout AI Response {nlResult.query_method?.includes('Wren') && '(Powered by Wren AI)'}
               </h3>
               <div className="flex items-center gap-4 text-sm" style={{ color: tokens.colors.tbwaGray }}>
                 <span>Method: {nlResult.query_method}</span>
@@ -1023,6 +1039,24 @@ const TBWAScoutDashboard = () => {
               <p style={{ color: tokens.colors.accentRed }}>{nlResult.error}</p>
             ) : (
               <div className="space-y-3">
+                {/* Show SQL query if available */}
+                {nlResult.sql && (
+                  <div className="mb-4">
+                    <p className="text-sm font-semibold mb-2" style={{ color: tokens.colors.tbwaGray }}>
+                      Generated SQL Query:
+                    </p>
+                    <pre 
+                      className="p-3 rounded overflow-x-auto text-xs"
+                      style={{ 
+                        backgroundColor: tokens.colors.tbwaBlack,
+                        color: tokens.colors.tbwaYellow,
+                        fontFamily: 'monospace'
+                      }}
+                    >
+                      {nlResult.sql}
+                    </pre>
+                  </div>
+                )}
                 {nlResult.data && nlResult.data.length > 0 && (
                   <div className="overflow-x-auto">
                     <table 

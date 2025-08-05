@@ -1,35 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Brain, Cookie } from 'lucide-react';
+import { Search, Cookie } from 'lucide-react';
 import { semanticSearch } from '@/lib/nlp/semantic-search';
-import { scoutFetch } from '@/lib/utils/scoutFetch';
-
-type ChatSource = 'scout' | 'suqi';
 
 interface AskPanelProps {
   onResult?: (result: any) => void;
 }
 
 export const AskPanel: React.FC<AskPanelProps> = ({ onResult }) => {
-  const [source, setSource] = useState<ChatSource>('scout');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [result, setResult] = useState<any>(null);
 
-  const tokens = {
-    colors: {
-      tbwaYellow: '#FFD700',
-      tbwaBlack: '#000000',
-      tbwaWhite: '#FFFFFF',
-      tbwaGray: '#4A4A4A',
-      tbwaLightGray: '#F5F5F5',
-      cookieBrown: '#B47921',
-    }
-  };
+  // SUQI sample queries
+  const sampleQueries = [
+    "What products does Juan typically buy?",
+    "Show me transaction patterns for Maria persona",
+    "Which products have highest ROI potential?"
+  ];
 
-  const handleQuery = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!query.trim()) return;
 
     setLoading(true);
@@ -37,45 +30,33 @@ export const AskPanel: React.FC<AskPanelProps> = ({ onResult }) => {
     setResult(null);
 
     try {
-      let data;
+      // Use semantic search for SUQI queries
+      const searchResults = semanticSearch(query);
       
-      if (source === 'scout') {
-        // Scout AI - Use API route which will call RPC
+      if (searchResults.length > 0) {
+        const topResult = searchResults[0];
         const response = await fetch('/api/wren-query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: query })
+          body: JSON.stringify({ 
+            question: query,
+            sql: topResult.sql,
+            context: 'sari_sari'
+          })
         });
-        data = await response.json();
-      } else {
-        // SUQI - Use semantic search with Sari-Sari context
-        const searchResults = semanticSearch(query);
-        if (searchResults.length > 0) {
-          const topResult = searchResults[0];
-          const response = await fetch('/api/wren-query', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              question: query,
-              sql: topResult.sql,
-              context: 'sari_sari'
-            })
-          });
-          data = await response.json();
-        } else {
-          // Return mock data if no matches found
-          data = {
-            result: 'No specific data found. Try asking about sales, revenue, or store performance.',
-            sql: null,
-            confidence: 0.3
-          };
+        const data = await response.json();
+        setResult(data);
+        
+        if (onResult) {
+          onResult(data);
         }
-      }
-
-      setResult(data);
-      
-      if (onResult) {
-        onResult(data);
+      } else {
+        // Return helpful message if no matches found
+        setResult({
+          result: 'No specific data found. Try asking about customer personas, transaction patterns, or product recommendations.',
+          sql: null,
+          confidence: 0.3
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Query failed');
@@ -85,187 +66,113 @@ export const AskPanel: React.FC<AskPanelProps> = ({ onResult }) => {
     }
   };
 
-  const placeholderText = source === 'scout' 
-    ? "Ask anything about your business data..."
-    : "Ask SUQI about sari-sari store insights...";
-
-  const sampleQueries = {
-    scout: [
-      "What's our total revenue this month?",
-      "Show me top performing regions",
-      "Which campaigns are most effective?"
-    ],
-    suqi: [
-      "What products does Juan typically buy?",
-      "Show me transaction patterns for Maria persona",
-      "Which products have highest ROI potential?"
-    ]
+  const handlePillClick = (text: string) => {
+    setQuery(text);
   };
 
   return (
-    <div className="px-6 py-4" style={{ backgroundColor: tokens.colors.tbwaWhite }}>
-      <div className="max-w-6xl mx-auto space-y-4">
-        {/* Search bar with source selector */}
-        <div className="flex gap-3">
-          {/* Source selector */}
-          <div className="relative">
-            <select
-              value={source}
-              onChange={(e) => setSource(e.target.value as ChatSource)}
-              className="appearance-none px-4 py-3 pr-10 rounded-lg border border-gray-300 font-medium"
-              style={{ 
-                backgroundColor: source === 'suqi' ? tokens.colors.cookieBrown : tokens.colors.tbwaBlack,
-                color: tokens.colors.tbwaWhite
-              }}
-            >
-              <option value="scout">Scout AI</option>
-              <option value="suqi">SUQI (Sari-Sari)</option>
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              {source === 'scout' ? (
-                <Brain className="h-4 w-4" style={{ color: tokens.colors.tbwaYellow }} />
-              ) : (
-                <Cookie className="h-4 w-4" style={{ color: tokens.colors.tbwaYellow }} />
-              )}
-            </div>
-          </div>
+    <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Input row */}
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 rounded-full text-xs font-bold text-black bg-pink-400">
+            SUQI
+          </span>
 
-          {/* Search input */}
-          <div className="flex-1 relative">
-            <Search 
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" 
-              style={{ color: tokens.colors.tbwaGray }}
-            />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={placeholderText}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base"
-              style={{ outline: 'none' }}
-              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${tokens.colors.tbwaYellow}`}
-              onBlur={(e) => e.target.style.boxShadow = 'none'}
-              onKeyPress={(e) => e.key === 'Enter' && handleQuery()}
-            />
-          </div>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask anything about your sari-sari operations…"
+            className="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+            disabled={loading}
+          />
 
-          {/* Ask button */}
           <button
-            onClick={handleQuery}
+            type="submit"
             disabled={loading || !query.trim()}
-            className="px-6 py-3 rounded-lg font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            style={{ 
-              backgroundColor: tokens.colors.tbwaYellow,
-              color: tokens.colors.tbwaBlack
-            }}
+            className="px-5 py-2 rounded bg-pink-400 text-black font-semibold shadow hover:bg-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-gray-800 mr-2"></div>
-                Analyzing...
+                <div className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full" />
+                Asking...
               </>
             ) : (
-              <>Ask {source === 'scout' ? 'Scout' : 'SUQI'}</>
+              <>
+                <Cookie className="h-4 w-4" />
+                Ask
+              </>
             )}
           </button>
         </div>
 
-        {/* Sample queries */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm" style={{ color: tokens.colors.tbwaGray }}>
-            Try:
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {sampleQueries[source].map((sample, index) => (
-              <button
-                key={index}
-                onClick={() => setQuery(sample)}
-                className="text-sm px-3 py-1 rounded-full transition-all hover:scale-105"
-                style={{ 
-                  backgroundColor: tokens.colors.tbwaLightGray,
-                  color: tokens.colors.tbwaGray,
-                  border: `1px solid ${tokens.colors.tbwaYellow}`
-                }}
-                onMouseEnter={(e) => {
-                  (e.target as HTMLButtonElement).style.backgroundColor = tokens.colors.tbwaYellow;
-                  (e.target as HTMLButtonElement).style.color = tokens.colors.tbwaBlack;
-                }}
-                onMouseLeave={(e) => {
-                  (e.target as HTMLButtonElement).style.backgroundColor = tokens.colors.tbwaLightGray;
-                  (e.target as HTMLButtonElement).style.color = tokens.colors.tbwaGray;
-                }}
-              >
-                "{sample}"
-              </button>
-            ))}
-          </div>
+        {/* Quick-type pills */}
+        <div className="flex flex-wrap gap-2 text-xs">
+          {sampleQueries.map((text, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handlePillClick(text)}
+              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+            >
+              {text}
+            </button>
+          ))}
         </div>
+
+        {/* Help drawer */}
+        <details className="bg-gray-50 rounded-lg p-4">
+          <summary className="cursor-pointer font-medium text-sm select-none">
+            What can I ask SUQI?
+          </summary>
+
+          <div className="mt-3 text-sm leading-6">
+            <p className="font-semibold mb-2">SUQI - Sari-Sari Store Intelligence</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Transaction pattern analysis</li>
+              <li>Customer persona insights</li>
+              <li>Product bundle recommendations</li>
+              <li>ROI optimization strategies</li>
+              <li>Inventory management tips</li>
+              <li>Peak hour analytics</li>
+            </ul>
+            <p className="mt-3 italic">Example queries:</p>
+            <div className="mt-1 space-y-1">
+              <code className="block bg-gray-100 px-2 py-1 rounded text-xs">What products does Juan typically buy?</code>
+              <code className="block bg-gray-100 px-2 py-1 rounded text-xs">Show me transaction patterns for Maria persona</code>
+              <code className="block bg-gray-100 px-2 py-1 rounded text-xs">Which products have highest ROI potential?</code>
+              <code className="block bg-gray-100 px-2 py-1 rounded text-xs">What items should I bundle together?</code>
+              <code className="block bg-gray-100 px-2 py-1 rounded text-xs">When are my peak selling hours?</code>
+            </div>
+          </div>
+        </details>
 
         {/* Error display */}
         {error && (
-          <div 
-            className="p-4 rounded-lg"
-            style={{ 
-              backgroundColor: '#FEF2F2',
-              color: '#DC2626'
-            }}
-          >
-            Error: {error}
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
           </div>
         )}
 
-        {/* Results display */}
-        {result && !error && (
-          <div 
-            className="p-4 rounded-lg border"
-            style={{ 
-              backgroundColor: tokens.colors.tbwaWhite,
-              borderColor: tokens.colors.tbwaLightGray
-            }}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold" style={{ color: tokens.colors.tbwaBlack }}>
-                {source === 'scout' ? 'Scout AI Analysis' : 'SUQI Insights'}
-              </h4>
-              <span className="text-sm" style={{ color: tokens.colors.tbwaGray }}>
-                {result.query_method || 'AI Analysis'} • {result.execution_time || 0}ms
-              </span>
+        {/* Result display */}
+        {result && (
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-semibold text-sm mb-2">SUQI Response:</h3>
+            <div className="text-sm text-gray-700">
+              {result.result || result.answer || 'Processing your query...'}
             </div>
-            
-            {/* Render results based on type */}
-            {result.data && Array.isArray(result.data) ? (
-              <div className="space-y-2">
-                {result.data.slice(0, 5).map((item: any, index: number) => (
-                  <div 
-                    key={index}
-                    className="flex justify-between items-center p-2 rounded"
-                    style={{ backgroundColor: tokens.colors.tbwaLightGray }}
-                  >
-                    <span>{item.metric || item.name || Object.values(item)[0]}</span>
-                    <span className="font-bold">
-                      {item.value || item.count || Object.values(item)[1]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <pre className="text-sm overflow-auto">
-                {JSON.stringify(result, null, 2)}
-              </pre>
+            {result.sql && (
+              <details className="mt-3">
+                <summary className="text-xs text-gray-500 cursor-pointer">View SQL</summary>
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-x-auto">
+                  {result.sql}
+                </pre>
+              </details>
             )}
           </div>
         )}
-
-        {/* Empty state */}
-        {!result && !error && !loading && (
-          <div 
-            className="text-center py-8 text-sm"
-            style={{ color: tokens.colors.tbwaGray }}
-          >
-            Ask a question to see results.
-          </div>
-        )}
-      </div>
+      </form>
     </div>
   );
 };
